@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chapter Spinner</title>
+</head>
+<body>
+  <h2>AI Spinner</h2>
+  <select id="chapter-select"></select>
+  <textarea id="content" rows="20" cols="100"></textarea><br>
+  <button id="spin">🔄 Spin Again</button>
+
+  <script>
+    async function loadChapters() {
+      const res = await fetch("chapters.json");
+      const chapters = await res.json();
+      const select = document.getElementById("chapter-select");
+      const textarea = document.getElementById("content");
+
+      chapters.forEach((ch, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = ch.chapter;
+        select.appendChild(opt);
+      });
+
+      select.onchange = () => {
+        textarea.value = chapters[select.value].spun || chapters[select.value].original;
+      };
+
+      select.value = 0;
+      textarea.value = chapters[0].spun || chapters[0].original;
+    }
+
+    document.getElementById("spin").onclick = async () => {
+      const text = document.getElementById("content").value;
+      const res = await fetch("/api/spin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      if (data.spun) document.getElementById("content").value = data.spun;
+      else alert(data.error || "Unknown error");
+    };
+
+    loadChapters();
+  </script>
+</body>
+</html>
